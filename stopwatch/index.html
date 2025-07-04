@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Advanced Green Stopwatch with Lap & Background</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(20, 50, 10, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 0;
+  }
+
+  .stopwatch-container {
+    position: relative;
+    z-index: 1;
+    background: #e1f7d5cc;
+    border-radius: 20px;
+    padding: 35px 45px;
+    width: 370px;
+    box-shadow:
+      0 8px 20px rgba(18, 115, 0, 0.5),
+      inset 0 0 15px #9cd36a;
+    text-align: center;
+    animation: fadeInScale 1.2s ease forwards;
+    backdrop-filter: saturate(180%) brightness(110%);
+    border: 2px solid #7bb248;
+  }
+
+  @keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95);}
+    to { opacity: 1; transform: scale(1);}
+  }
+
+  /* New clock icon styling */
+  .clock-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 15px;
+    fill: #4caf50;
+    filter: drop-shadow(0 0 4px #2e7d32cc);
+    animation: pulseGreen 2.5s infinite ease-in-out;
+  }
+
+  @keyframes pulseGreen {
+    0%, 100% { filter: drop-shadow(0 0 4px #2e7d32cc); }
+    50% { filter: drop-shadow(0 0 12px #81c784cc); }
+  }
+
+  h1 {
+    font-weight: 900;
+    font-size: 2.7rem;
+    margin-bottom: 30px;
+    color: #1b4d1b;
+    letter-spacing: 4px;
+    text-shadow: 0 0 10px #4ca64c;
+  }
+
+  #time {
+    font-size: 3.6rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #c7f0a1, #89bf4a);
+    border-radius: 15px;
+    padding: 18px 25px;
+    box-shadow:
+      0 5px 12px rgba(0, 102, 0, 0.6),
+      inset 0 0 18px #7eba3a;
+    color: #153d15;
+    letter-spacing: 3px;
+    font-variant-numeric: tabular-nums;
+    user-select: text;
+    margin-bottom: 35px;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 12px;
+  }
+
+  button {
+    flex: 1;
+    padding: 14px 0;
+    border: none;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.15s ease,
+      color 0.3s ease;
+    box-shadow: 0 4px 10px #72af3c;
+    color: #204020;
+    background: #a9d16d;
+    user-select: none;
+  }
+
+  button svg {
+    width: 22px;
+    height: 22px;
+    fill: #204020;
+    transition: fill 0.3s ease;
+  }
+
+  button:not(:disabled):hover {
+    background: #81b92a;
+    color: #0f260a;
+    box-shadow: 0 7px 14px #4e7e00;
+  }
+
+  button:not(:disabled):hover svg {
+    fill: #0f260a;
+  }
+
+  button:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  button:disabled {
+    background: #cad9b3;
+    color: #7c9a5b;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  #laps {
+    max-height: 220px;
+    overflow-y: auto;
+    text-align: left;
+    border-top: 3px solid #81b92a;
+    padding-top: 20px;
+  }
+
+  .lap-item {
+    background: #b5db82cc;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 10px 16px;
+    font-weight: 700;
+    color: #2d5700;
+    box-shadow: inset 0 0 12px #7f9c43;
+    opacity: 0;
+    animation: lapFadeIn 0.6s forwards ease-out;
+  }
+
+  @keyframes lapFadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="stopwatch-container" role="main" aria-label="Stopwatch Application">
+    <!-- Clock SVG Icon -->
+    <svg class="clock-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="#4caf50" stroke-width="2" fill="none"/>
+      <line x1="12" y1="6" x2="12" y2="12" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+      <line x1="12" y1="12" x2="16" y2="14" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="12" r="1" fill="#4caf50"/>
+    </svg>
+
+    <h1>Stopwatch</h1>
+    <div id="time" aria-live="polite" aria-atomic="true">00:00:00.000</div>
+    <div class="buttons">
+      <button id="startPauseBtn" aria-label="Start stopwatch" aria-pressed="false" title="Start / Pause">
+        <svg id="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        Start
+      </button>
+      <button id="lapBtn" disabled aria-label="Record lap time" title="Lap">Lap</button>
+      <button id="resetBtn" disabled aria-label="Reset stopwatch" title="Reset">Reset</button>
+    </div>
+    <div id="laps" aria-live="polite" aria-relevant="additions"></div>
+  </div>
+
+<script>
+  const timeDisplay = document.getElementById('time');
+  const startPauseBtn = document.getElementById('startPauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const lapBtn = document.getElementById('lapBtn');
+  const lapsContainer = document.getElementById('laps');
+  const icon = document.getElementById('icon');
+
+  let startTime = 0;
+  let elapsedTime = 0;
+  let timerInterval;
+  let running = false;
+  let lapNumber = 0;
+
+  const playIconPath = "M8 5v14l11-7z";
+  const pauseIconPath = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+
+  function timeToString(time) {
+    const ms = time % 1000;
+    const totalSeconds = Math.floor(time / 1000);
+    const seconds = totalSeconds % 60;
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const minutes = totalMinutes % 60;
+    const hours = Math.floor(totalMinutes / 60);
+
+    return (
+      String(hours).padStart(2, '0') + ':' +
+      String(minutes).padStart(2, '0') + ':' +
+      String(seconds).padStart(2, '0') + '.' +
+      String(ms).padStart(3, '0')
+    );
+  }
+
+  function start() {
+    startTime = Date.now() - elapsedTime;
+    timerInterval = setInterval(() => {
+      elapsedTime = Date.now() - startTime;
+      timeDisplay.textContent = timeToString(elapsedTime);
+    }, 10);
+
+    running = true;
+    icon.querySelector('path').setAttribute('d', pauseIconPath);
+    startPauseBtn.setAttribute('aria-label', 'Pause stopwatch');
+    startPauseBtn.setAttribute('aria-pressed', 'true');
+    startPauseBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${pauseIconPath}"/></svg> Pause`;
+
+    resetBtn.disabled = false;
+    lapBtn.disabled = false;
+  }
+
+  function pause() {
+    clearInterval(timerInterval);
+    running = false;
+    icon.querySelector('path').setAttribute('d', playIconPath);
+    startPauseBtn.setAttribute('aria-label', 'Start stopwatch');
+    startPauseBtn.setAttribute('aria-pressed', 'false');
+    startPauseBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${playIconPath}"/></svg> Start`;
+  }
+
+  function reset() {
+    clearInterval(timerInterval);
+    elapsedTime = 0;
+    timeDisplay.textContent = '00:00:00.000';
+    lapsContainer.innerHTML = '';
+    lapNumber = 0;
+    running = false;
+
+    icon.querySelector('path').setAttribute('d', playIconPath);
+    startPauseBtn.setAttribute('aria-label', 'Start stopwatch');
+    startPauseBtn.setAttribute('aria-pressed', 'false');
+    startPauseBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${playIconPath}"/></svg> Start`;
+
+    resetBtn.disabled = true;
+    lapBtn.disabled = true;
+  }
+
+  function recordLap() {
+    if (!running) return;
+
+    lapNumber++;
+    const lapTime = timeToString(elapsedTime);
+
+    const lapItem = document.createElement('div');
+    lapItem.classList.add('lap-item');
+    lapItem.textContent = `Lap ${lapNumber}: ${lapTime}`;
+
+    lapsContainer.prepend(lapItem);
+
+    lapsContainer.style.background = '#d4f0a7';
+    setTimeout(() => {
+      lapsContainer.style.background = 'transparent';
+    }, 200);
+  }
+
+  startPauseBtn.addEventListener('click', () => {
+    if (!running) {
+      start();
+    } else {
+      pause();
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    reset();
+  });
+
+  lapBtn.addEventListener('click', () => {
+    recordLap();
+  });
+</script>
+</body>
+</html>
